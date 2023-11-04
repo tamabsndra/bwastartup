@@ -6,14 +6,24 @@ import (
 	"bwastartup/user"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func main() {
-	dsn := "host=localhost user=postgres password=narotama20 dbname=bwastartup port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+	err := godotenv.Load()
+    if err != nil {
+        fmt.Println("Gagal memuat file .env")
+        return
+    }
+
+	dbConfig := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
+	
+	dsn := dbConfig
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
