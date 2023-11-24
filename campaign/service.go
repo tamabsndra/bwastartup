@@ -10,9 +10,10 @@ import (
 type Service interface {
 	GetCampaigns(userID int) ([]Campaign, error)
 	GetCampaignByID(input GetCampaignDetailInput) (Campaign, error)
-	DeleteCampaign(input GetCampaignDetailInput, userID int) (error)
+	DeleteCampaign(input GetCampaignDetailInput, userID int) error
 	CreateCampaign(input CreateCampaignInput) (Campaign, error)
-	UpdateCampaign(InputID GetCampaignDetailInput, inputData CreateCampaignInput) (Campaign, error)
+	UpdateCampaign(inputID GetCampaignDetailInput, inputData CreateCampaignInput) (Campaign, error)
+	SaveCampaignImage(input CreateCampaignImageInput, fileLocation string) (CampaignImages, error)
 }
 
 type service struct {
@@ -50,13 +51,13 @@ func (s *service) GetCampaignByID(input GetCampaignDetailInput) (Campaign, error
 	return campaign, nil
 }
 
-func (s *service) DeleteCampaign(input GetCampaignDetailInput, userID int) (error) {
+func (s *service) DeleteCampaign(input GetCampaignDetailInput, userID int) error {
 	campaign, err := s.repository.FindByID(input.ID)
 	if err != nil {
 		return err
 	}
 
-	if campaign.UserID != userID{
+	if campaign.UserID != userID {
 		return errors.New("not an owner of the campaign")
 	}
 
@@ -88,13 +89,13 @@ func (s *service) CreateCampaign(input CreateCampaignInput) (Campaign, error) {
 	return newCampaign, nil
 }
 
-func (s *service) UpdateCampaign(InputID GetCampaignDetailInput, inputData CreateCampaignInput) (Campaign, error) {
-	campaign, err := s.repository.FindByID(InputID.ID)
+func (s *service) UpdateCampaign(inputID GetCampaignDetailInput, inputData CreateCampaignInput) (Campaign, error) {
+	campaign, err := s.repository.FindByID(inputID.ID)
 	if err != nil {
 		return campaign, err
 	}
 
-	if campaign.UserID != inputData.User.ID{
+	if campaign.UserID != inputData.User.ID {
 		return campaign, errors.New("not an owner of the campaign")
 	}
 
@@ -110,4 +111,37 @@ func (s *service) UpdateCampaign(InputID GetCampaignDetailInput, inputData Creat
 	}
 
 	return updatedCampaign, nil
+}
+
+func (s *service) SaveCampaignImage(input CreateCampaignImageInput, fileLocation string) (CampaignImages, error) {
+	campaign, err := s.repository.FindByID(input.CampaignID)
+	if err != nil {
+		return CampaignImages{}, err
+	}
+
+	if campaign.UserID != input.User.ID {
+		return CampaignImages{}, errors.New("not an owner of the campaign")
+	}
+
+	isPrimary := 0
+	if input.IsPrimary {
+		isPrimary = 1
+
+		_, err := s.repository.MarkAllImagesNonPrimary(input.CampaignID)
+		if err != nil {
+			return CampaignImages{}, err
+		}
+	}
+
+	campaignImages := CampaignImages{}
+	campaignImages.CampaignID = input.CampaignID
+	campaignImages.IsPrimary = isPrimary
+	campaignImages.FileName = fileLocation
+
+	newCampaignImage, err := s.repository.CreateImage(campaignImages)
+	if err != nil {
+		return newCampaignImage, err
+	}
+
+	return newCampaignImage, nil
 }
