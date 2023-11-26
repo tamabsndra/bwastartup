@@ -9,6 +9,7 @@ import (
 )
 
 type service struct {
+	
 }
 
 type Service interface {

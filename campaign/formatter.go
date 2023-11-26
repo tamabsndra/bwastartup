@@ -53,6 +53,7 @@ type CampaignDetailFormatter struct {
 	ImageURL         string                    `json:"image_url"`
 	GoalAmount       int                       `json:"goal_amount"`
 	CurrentAmount    int                       `json:"current_amount"`
+	BackerCount      int                       `json:"backer_count"`
 	UserID           int                       `json:"user_id"`
 	Slug             string                    `json:"slug"`
 	Perks            []string                  `json:"perks"`
@@ -81,6 +82,7 @@ func FormatCampaignDetail(campaign Campaign) CampaignDetailFormatter {
 	campaignDetailFormatter.UserID = campaign.UserID
 	campaignDetailFormatter.GoalAmount = campaign.GoalAmount
 	campaignDetailFormatter.CurrentAmount = campaign.CurrentAmount
+	campaignDetailFormatter.BackerCount = campaign.BackerCount
 	campaignDetailFormatter.ImageURL = ""
 
 	if len(campaign.CampaignImages) > 0 {
@@ -104,12 +106,12 @@ func FormatCampaignDetail(campaign Campaign) CampaignDetailFormatter {
 
 	images := []CampaignImagesFormatter{}
 
-	for _, image := range campaign.CampaignImages{
+	for _, image := range campaign.CampaignImages {
 		campaignImageFormatter := CampaignImagesFormatter{}
 		campaignImageFormatter.ImageURL = image.FileName
 
 		isPrimary := false
-		if image.IsPrimary == 1{
+		if image.IsPrimary == 1 {
 			isPrimary = true
 		}
 		campaignImageFormatter.IsPrimary = isPrimary
